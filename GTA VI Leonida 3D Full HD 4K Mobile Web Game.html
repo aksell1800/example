@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Grand Theft Auto VI: Leonida 3D (Full HD / 4K Mobile Edition)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #070312;
+            font-family: 'Inter', sans-serif;
+            touch-action: none;
+        }
+        .font-vice {
+            font-family: 'Orbitron', sans-serif;
+        }
+        #webglCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            outline: none;
+        }
+        .vice-gradient-text {
+            background: linear-gradient(135deg, #ff2a85 0%, #ff8a00 50%, #00f0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .vice-glass {
+            background: rgba(12, 8, 26, 0.80);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 42, 133, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 0 14px rgba(0, 240, 255, 0.12);
+        }
+        .touch-btn {
+            transition: transform 0.08s ease, filter 0.12s ease, box-shadow 0.12s ease;
+            touch-action: none;
+        }
+        .touch-btn:active, .touch-btn.pressed {
+            transform: scale(0.88);
+            filter: brightness(1.3);
+        }
+
+        /* Animated 3D Phone Rotation Icon for Portrait Warning */
+        @keyframes rotatePhone3D {
+            0% { transform: rotate(0deg) scale(1); border-color: #ff2a85; }
+            35% { transform: rotate(-90deg) scale(1.08); border-color: #00f0ff; }
+            75% { transform: rotate(-90deg) scale(1.08); border-color: #00f0ff; }
+            100% { transform: rotate(0deg) scale(1); border-color: #ff2a85; }
+        }
+        .phone-rotate-anim {
+            animation: rotatePhone3D 2.6s infinite ease-in-out;
+        }
+
+        @keyframes pulseHijack {
+            0%, 100% { box-shadow: 0 0 12px rgba(0, 240, 255, 0.7), 0 0 24px rgba(255, 42, 133, 0.5); transform: scale(1); }
+            50% { box-shadow: 0 0 24px rgba(0, 240, 255, 1), 0 0 40px rgba(255, 42, 133, 0.9); transform: scale(1.07); }
+        }
+        .hijack-ready {
+            animation: pulseHijack 1s infinite ease-in-out;
+            border-color: #00f0ff !important;
+        }
+
+        @keyframes wantedBlink {
+            0%, 100% { color: #facc15; filter: drop-shadow(0 0 6px #facc15); }
+            50% { color: #ef4444; filter: drop-shadow(0 0 10px #ef4444); }
+        }
+        .star-wanted {
+            animation: wantedBlink 0.55s infinite;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none bg-[#070312] text-white">
+
+    <!-- ==================== 1. AUTOMATIC PORTRAIT-TO-LANDSCAPE DETECTOR OVERLAY ==================== -->
+    <div id="portraitOverlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[#130426] via-[#2b0638] to-[#080312]">
+        <!-- Neon Grid Background -->
+        <div class="absolute inset-0 pointer-events-none opacity-35 bg-[linear-gradient(to_right,#ff2a8522_1px,transparent_1px),linear-gradient(to_bottom,#00f0ff22_1px,transparent_1px)] bg-[size:28px_28px]"></div>
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-pink-600/25 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-sm w-full vice-glass rounded-3xl p-6 flex flex-col items-center border-2 border-pink-500/60">
+            <!-- Status Pill -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-5">
+                <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+                Deteksi Otomatis Layar HP
+            </div>
+
+            <!-- Animated Rotating Phone Visual -->
+            <div class="relative w-28 h-28 flex items-center justify-center mb-5">
+                <div class="phone-rotate-anim w-14 h-24 rounded-2xl border-4 border-pink-500 bg-slate-900/90 shadow-[0_0_25px_rgba(255,42,133,0.6)] flex flex-col items-center justify-between p-1.5">
+                    <div class="w-4 h-1 rounded-full bg-cyan-400/70"></div>
+                    <span class="font-vice text-[10px] font-black vice-gradient-text">GTA VI</span>
+                    <div class="w-2.5 h-2.5 rounded-full border border-white/50"></div>
+                </div>
+                <!-- Rotation Arrow Ring -->
+                <div class="absolute -bottom-1 right-2 text-lg">🔄</div>
+            </div>
+
+            <h2 class="font-vice text-xl sm:text-2xl font-black tracking-wide vice-gradient-text uppercase mb-2">
+                PUTAR PERANGKAT KE LANDSCAPE
+            </h2>
+
+            <p class="text-xs text-gray-300 leading-relaxed mb-4">
+                Untuk pengalaman <span class="text-cyan-300 font-bold">GTA VI 3D Full HD / 4K</span> dengan kontrol *Dual-Stick* terbaik, miringkan HP Anda ke posisi mendatar (**Landscape**).
+            </p>
+
+            <!-- Live Resolution & Orientation Readout -->
+            <div id="portraitResInfo" class="w-full py-1.5 px-3 rounded-xl bg-black/50 border border-white/10 text-[11px] font-mono text-pink-300 mb-4">
+                Layar Saat Ini: Portrait • Menunggu Rotasi...
+            </div>
+
+            <!-- Primary Action: Request Fullscreen + Landscape Orientation Lock -->
+            <button onclick="lockLandscapeAndFullscreen()" class="w-full py-3.5 px-4 rounded-2xl font-vice font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#ff2a85] via-[#ff6a00] to-[#00d2ff] shadow-[0_0_25px_rgba(255,42,133,0.65)] active:scale-95 transition-transform flex items-center justify-center gap-2 border border-white/30 mb-2.5">
+                <span>🔒</span>
+                <span>KUNCI LANDSCAPE & FULLSCREEN</span>
+            </button>
+
+            <!-- Secondary Action: Force Bypass for testing on narrow screens -->
+            <button onclick="forceBypassPortrait()" class="text-[11px] text-gray-400 hover:text-white underline py-1">
+                Tetap Buka Tanpa Rotasi (Mode Paksa)
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 2. 3D WEBGL CANVAS ==================== -->
+    <canvas id="webglCanvas"></canvas>
+
+    <!-- ==================== 3. START MENU OVERLAY (GTA VI 3D 4K EDITION) ==================== -->
+    <div id="startMenu" class="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6 bg-gradient-to-r from-[#090414]/90 via-[#1b062b]/75 to-transparent backdrop-blur-sm overflow-y-auto">
+        <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-4 items-center my-auto">
+
+            <!-- Left Column: Title, Protagonists & Graphics Preset -->
+            <div class="md:col-span-7 vice-glass rounded-3xl p-4 sm:p-6 border border-pink-500/50">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="px-3 py-0.5 rounded-full bg-pink-500/20 border border-pink-400/50 text-[10px] sm:text-xs font-bold text-cyan-300 uppercase tracking-widest">
+                        WebGL 3D Engine • Vice City Leonida
+                    </span>
+                    <span id="menuResTag" class="px-2.5 py-0.5 rounded-md bg-cyan-500/20 border border-cyan-400/50 text-[10px] font-mono font-bold text-cyan-200">
+                        4K ULTRA PBR READY
+                    </span>
+                </div>
+
+                <h1 class="font-vice text-4xl sm:text-6xl font-black italic tracking-tighter vice-gradient-text leading-none mb-1">
+                    GRAND THEFT AUTO VI
+                </h1>
+                <p class="font-vice text-xs sm:text-sm tracking-[0.22em] text-pink-200 font-bold uppercase mb-3">
+                    Leonida 3D Open-World • Full HD & 4K Edition
+                </p>
+
+                <!-- Select Starting Protagonist -->
+                <div class="mb-3">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-cyan-300 mb-1.5">
+                        1. Pilih Karakter Utama (Bisa Ganti Real-Time di Dalam Game):
+                    </label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button id="cardLucia" onclick="selectStartChar('lucia')" class="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-pink-500 bg-pink-500/25 text-left transition-all">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-pink-600 to-amber-400 flex items-center justify-center text-2xl shrink-0 border border-white/70">
+                                👩🏽‍🎤
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-vice font-black text-xs sm:text-sm text-white">LUCIA</div>
+                                <div class="text-[10px] text-pink-200 truncate">Gesit • Akurasi Tinggi</div>
+                            </div>
+                        </button>
+
+                        <button id="cardJason" onclick="selectStartChar('jason')" class="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-white/15 bg-white/5 text-left hover:bg-white/10 transition-all">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-400 flex items-center justify-center text-2xl shrink-0 border border-white/50">
+                                👱🏼‍♂️
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-vice font-black text-xs sm:text-sm text-white">JASON</div>
+                                <div class="text-[10px] text-cyan-200 truncate">Armor Tebal • Ahli Drift</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Select Graphics Quality Preset -->
+                <div class="mb-4">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-cyan-300 mb-1.5">
+                        2. Pilih Kualitas Grafis 3D (Resolusi Render & Bayangan):
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="preset720p" onclick="setGraphicsQuality('720p')" class="p-2 rounded-xl border border-white/20 bg-black/40 text-center transition-all">
+                            <div class="font-vice font-bold text-xs text-gray-200">720p HD</div>
+                            <div class="text-[10px] text-gray-400">60 FPS Hemat</div>
+                        </button>
+                        <button id="preset1080p" onclick="setGraphicsQuality('1080p')" class="p-2 rounded-xl border border-white/20 bg-black/40 text-center transition-all">
+                            <div class="font-vice font-bold text-xs text-cyan-300">1080p FHD</div>
+                            <div class="text-[10px] text-gray-300">High Shadows</div>
+                        </button>
+                        <button id="preset4k" onclick="setGraphicsQuality('4k')" class="p-2 rounded-xl border-2 border-pink-500 bg-pink-500/25 text-center shadow-[0_0_15px_rgba(255,42,133,0.4)] transition-all">
+                            <div class="font-vice font-black text-xs text-amber-300">4K ULTRA</div>
+                            <div class="text-[10px] text-pink-200">Ray-Gloss PBR</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Launch Game CTA -->
+                <div class="flex flex-col sm:flex-row gap-2.5">
+                    <button onclick="launch3DGame(true)" class="flex-1 py-3.5 px-5 rounded-2xl font-vice font-black text-sm sm:text-base tracking-wider text-white bg-gradient-to-r from-[#ff2a85] via-[#ff5e00] to-[#00d2ff] shadow-[0_0_25px_rgba(255,42,133,0.7)] active:scale-95 transition-transform flex items-center justify-center gap-2 border border-white/40">
+                        <span>▶ MULAI MAIN 3D (FULLSCREEN LANDSCAPE)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: 3D Controls & Feature Guide -->
+            <div class="md:col-span-5 vice-glass rounded-3xl p-4 sm:p-5 border border-cyan-400/30 flex flex-col justify-between gap-3">
+                <div>
+                    <h3 class="font-vice font-bold text-xs sm:text-sm text-cyan-300 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+                        <span>🎮</span> Fitur & Kontrol 3D Mobile / PC
+                    </h3>
+                    <ul class="space-y-2 text-xs text-gray-200">
+                        <li class="flex items-start gap-2 bg-black/35 p-2 rounded-xl border border-white/5">
+                            <span class="text-base">🕹️</span>
+                            <div><strong class="text-pink-300">Analog Kiri & Geser Layar Kanan:</strong> Jalan 360°, setir mobil 3D, dan putar kamera bebas di sekitar karakter.</div>
+                        </li>
+                        <li class="flex items-start gap-2 bg-black/35 p-2 rounded-xl border border-white/5">
+                            <span class="text-base">🔄</span>
+                            <div><strong class="text-cyan-300">Ganti Karakter Sky-Cam (Lucia ⇄ Jason):</strong> Tap potret karakter di kanan atas untuk transisi kamera langit ala GTA V/VI!</div>
+                        </li>
+                        <li class="flex items-start gap-2 bg-black/35 p-2 rounded-xl border border-white/5">
+                            <span class="text-base">🏎️</span>
+                            <div><strong class="text-amber-300">Supercar 3D & Kejaran Polisi:</strong> Bajak mobil sport, aktifkan Nitro & Drift, atau masuk ke garasi <em>Pay 'n' Spray</em>.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-black/50 border border-white/10 text-[11px] text-gray-400 text-center">
+                    💻 <strong>Keyboard PC:</strong> WASD (Gerak/Setir), Mouse (Kamera), Klik/Spasi (Tembak/Drift), F (Naik/Turun Mobil), C (Kamera), V (Ganti Karakter)
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== 4. IN-GAME 3D HUD OVERLAY ==================== -->
+    <div id="gameHud" class="fixed inset-0 z-20 pointer-events-none hidden flex-col justify-between p-2.5 sm:p-4">
+
+        <!-- Center 3D Aiming Reticle Crosshair (Visible On-Foot) -->
+        <div id="aimCrosshair" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center">
+            <div class="w-5 h-5 rounded-full border border-white/60 flex items-center justify-center">
+                <div class="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_#00f0ff]"></div>
+            </div>
+        </div>
+
+        <!-- Right-Half Touch Camera Orbit Zone -->
+        <div id="cameraTouchZone" class="fixed top-16 right-0 bottom-36 w-1/2 pointer-events-auto z-0"></div>
+
+        <!-- TOP HUD ROW -->
+        <div class="relative z-10 flex items-start justify-between gap-2 w-full">
+
+            <!-- Top-Left: Rotating 2D Radar Minimap + Live Zone Name -->
+            <div class="flex items-start gap-2 pointer-events-auto">
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-pink-500/80 shadow-[0_0_18px_rgba(255,42,133,0.45)] bg-slate-950/90">
+                    <canvas id="radarCanvas" width="120" height="120" class="w-full h-full block"></canvas>
+                    <!-- Center Player Triangle -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[10px] border-b-cyan-300 drop-shadow-[0_0_4px_#00f0ff]"></div>
+                    </div>
+                    <div class="absolute top-0.5 left-1/2 -translate-x-1/2 px-1 rounded bg-black/80 text-[8px] font-bold text-pink-400">N</div>
+                </div>
+
+                <!-- FPS, Resolution Scaler & Fullscreen Quick Controls -->
+                <div class="flex flex-col gap-1">
+                    <div class="vice-glass rounded-xl px-2.5 py-1 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="fpsCounter" class="font-mono text-[10px] sm:text-xs font-bold text-cyan-300">60 FPS • 4K</span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <button onclick="cycleGraphicsPreset()" id="gfxHudBtn" class="px-2 py-1 rounded-lg bg-black/75 border border-pink-500/50 text-[10px] font-vice font-bold text-amber-300 active:scale-95">
+                            ✨ 4K ULTRA
+                        </button>
+                        <button onclick="toggleFullscreenGame()" class="px-2 py-1 rounded-lg bg-black/75 border border-cyan-400/40 text-[10px] font-bold text-cyan-200 active:scale-95" title="Fullscreen Landscape">
+                            ⛶
+                        </button>
+                        <button onclick="toggleAudioMute()" id="muteHudBtn" class="px-2 py-1 rounded-lg bg-black/75 border border-white/20 text-[10px] active:scale-95">
+                            🔊
+                        </button>
+                    </div>
+
+                    <div id="streetNameBadge" class="text-[10px] font-vice font-bold text-pink-300 bg-black/60 px-2 py-0.5 rounded-md border border-white/10 truncate max-w-[140px]">
+                        📍 Ocean Drive 3D
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top-Center: Active Mission Waypoint Bar -->
+            <div class="hidden sm:flex flex-col items-center max-w-xs w-full pointer-events-auto">
+                <div class="w-full vice-glass rounded-2xl px-3 py-1.5 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="px-1.5 py-0.5 rounded bg-pink-500/30 border border-pink-400/50 text-[9px] font-bold text-pink-200 uppercase shrink-0">MISI 3D</span>
+                        <p id="missionHudText" class="text-xs font-bold text-white truncate">Ambil Koper VIP di Beacon Pink</p>
+                    </div>
+                    <span id="missionDistBadge" class="font-mono text-[11px] font-bold text-cyan-300 shrink-0">85m</span>
+                </div>
+            </div>
+
+            <!-- Top-Right: Character Switcher (Lucia ⇄ Jason), Wanted Stars, Cash, Health/Armor & Weapon -->
+            <div class="flex items-start gap-2 pointer-events-auto">
+
+                <!-- Stats & Weapon Column -->
+                <div class="vice-glass rounded-2xl p-2 sm:p-2.5 flex flex-col items-end min-w-[125px] sm:min-w-[150px]">
+                    <!-- Wanted Stars (1-5) -->
+                    <div id="wantedStarsRow" class="flex items-center gap-0.5 text-xs sm:text-sm leading-none mb-0.5">
+                        <span class="star-item text-gray-600">★</span>
+                        <span class="star-item text-gray-600">★</span>
+                        <span class="star-item text-gray-600">★</span>
+                        <span class="star-item text-gray-600">★</span>
+                        <span class="star-item text-gray-600">★</span>
+                    </div>
+
+                    <!-- Cash Counter -->
+                    <div class="font-vice font-black text-emerald-400 text-xs sm:text-base tracking-tight">
+                        $<span id="hudCash">1,500</span>
+                    </div>
+
+                    <!-- Health & Armor Bars -->
+                    <div class="w-full flex items-center gap-1 mt-1">
+                        <div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                            <div id="hudHealthBar" class="h-full bg-gradient-to-r from-rose-500 to-pink-500 transition-all" style="width:100%"></div>
+                        </div>
+                        <div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                            <div id="hudArmorBar" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all" style="width:100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Weapon Selector & Wanted Reset Row -->
+                    <div class="flex items-center gap-1 mt-1.5 w-full justify-end">
+                        <button onclick="clearWantedStars()" class="px-1.5 py-0.5 rounded bg-yellow-500/20 border border-yellow-400/40 text-[9px] font-bold text-yellow-300 active:scale-95">
+                            ⭐-0
+                        </button>
+                        <button onclick="switchNextWeapon()" class="flex-1 py-0.5 px-2 rounded bg-cyan-500/20 border border-cyan-400/50 text-[10px] font-bold text-cyan-200 flex items-center justify-center gap-1 active:scale-95">
+                            <span id="hudWeaponIcon">🔫</span>
+                            <span id="hudWeaponName" class="truncate">Vice SMG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GTA VI Real-Time Character Switcher Portrait Button -->
+                <button onclick="triggerCharacterSwitch()" class="touch-btn relative w-14 h-16 sm:w-16 sm:h-20 rounded-2xl vice-glass border-2 border-pink-500 flex flex-col items-center justify-between p-1.5 shadow-[0_0_18px_rgba(255,42,133,0.45)]" title="Ganti Karakter (Lucia / Jason)">
+                    <span class="text-[8px] font-bold uppercase tracking-wider text-cyan-300">GANTI</span>
+                    <div id="activeCharAvatar" class="text-xl sm:text-2xl leading-none">👩🏽‍🎤</div>
+                    <span id="activeCharName" class="font-vice font-black text-[9px] sm:text-[10px] text-white">LUCIA</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- CENTER BANNER TOAST (Mission Passed, Character Switch, Pay 'n' Spray) -->
+        <div id="centerToast" class="self-center pointer-events-none transition-all duration-300 opacity-0 scale-90">
+            <div class="px-5 py-2.5 rounded-2xl bg-black/85 border-2 border-cyan-400 shadow-[0_0_30px_rgba(0,240,255,0.6)] text-center">
+                <div id="toastHeading" class="font-vice font-black text-sm sm:text-lg vice-gradient-text uppercase">MISSION PASSED!</div>
+                <div id="toastSubtext" class="text-xs text-gray-200 font-semibold">+ $1,000 • Respect +</div>
+            </div>
+        </div>
+
+        <!-- BOTTOM MULTI-TOUCH CONTROLS ROW -->
+        <div class="relative z-10 flex items-end justify-between w-full pb-1 sm:pb-2">
+
+            <!-- Bottom-Left: Virtual 360° Analog Joystick -->
+            <div id="joyContainer" class="relative w-28 h-28 sm:w-36 sm:h-36 pointer-events-auto flex items-center justify-center ml-1">
+                <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-black/45 border-2 border-pink-500/60 backdrop-blur-md flex items-center justify-center shadow-[0_0_20px_rgba(255,42,133,0.3)]">
+                    <div class="w-16 h-16 rounded-full border border-cyan-400/25 pointer-events-none"></div>
+                    <div id="joyStickKnob" class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-cyan-400 border-2 border-white shadow-[0_0_16px_rgba(255,42,133,0.9)] flex items-center justify-center text-xs font-bold">
+                        🕹️
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom-Center: Digital Speedometer (Visible when Driving) -->
+            <div id="speedometerHud" class="hidden flex-col items-center vice-glass px-4 py-1.5 rounded-2xl border border-cyan-400/40 mb-1">
+                <div class="flex items-baseline gap-1">
+                    <span id="speedValue" class="font-vice font-black text-xl sm:text-2xl text-cyan-300">0</span>
+                    <span class="text-[10px] font-bold text-pink-300">KM/H</span>
+                </div>
+                <div id="currentCarLabel" class="text-[9px] font-bold uppercase tracking-wider text-gray-300">CHEETAH VICE 4K</div>
+            </div>
+
+            <!-- Bottom-Right: Contextual Action Buttons (On-Foot vs Driving) -->
+            <div class="pointer-events-auto mr-1">
+
+                <!-- 1. ON-FOOT BUTTON CLUSTER -->
+                <div id="footButtons" class="grid grid-cols-3 gap-2 sm:gap-2.5 items-end">
+                    <!-- Enter / Hijack Vehicle Button -->
+                    <button id="btnHijack" onclick="interactVehicle()" class="touch-btn col-span-3 py-2 px-3 rounded-xl bg-slate-900/85 border-2 border-white/30 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg">
+                        <span>🚗</span>
+                        <span id="hijackBtnText">Naik Mobil</span>
+                    </button>
+
+                    <!-- Jump Button -->
+                    <button id="btnJump" class="touch-btn w-13 h-13 sm:w-16 sm:h-16 p-2 rounded-full bg-purple-600/80 border-2 border-purple-300 text-white flex flex-col items-center justify-center shadow-lg">
+                        <span class="text-base leading-none">🦘</span>
+                        <span class="text-[9px] font-extrabold mt-0.5">LOMPAT</span>
+                    </button>
+
+                    <!-- Sprint Button -->
+                    <button id="btnSprint" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 p-2 rounded-full bg-cyan-600/80 border-2 border-cyan-300 text-white flex flex-col items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.4)]">
+                        <span class="text-base leading-none">⚡</span>
+                        <span class="text-[9px] font-extrabold mt-0.5">LARI</span>
+                    </button>
+
+                    <!-- Fire / Attack Button -->
+                    <button id="btnShoot" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-rose-600 to-pink-600 border-2 border-pink-200 text-white flex flex-col items-center justify-center shadow-[0_0_24px_rgba(255,42,133,0.8)]">
+                        <span class="text-xl leading-none">🔥</span>
+                        <span class="text-[10px] font-black mt-0.5">TEMBAK</span>
+                    </button>
+                </div>
+
+                <!-- 2. 3D DRIVING BUTTON CLUSTER -->
+                <div id="driveButtons" class="hidden grid-cols-3 gap-2 sm:gap-2.5 items-end">
+                    <!-- Top Row: Exit Car, Camera View, Horn/Siren -->
+                    <button onclick="interactVehicle()" class="touch-btn py-1.5 px-2.5 rounded-xl bg-rose-950/90 border border-rose-400/70 text-rose-100 font-bold text-[11px] flex items-center justify-center gap-1">
+                        <span>🚪</span><span>Keluar</span>
+                    </button>
+                    <button onclick="cycleCameraMode()" class="touch-btn py-1.5 px-2.5 rounded-xl bg-slate-900/90 border border-cyan-400/60 text-cyan-200 font-bold text-[11px] flex items-center justify-center gap-1">
+                        <span>🎥</span><span>Kamera</span>
+                    </button>
+                    <button id="btnNitro" class="touch-btn py-1.5 px-2.5 rounded-xl bg-cyan-950/90 border border-cyan-300 text-cyan-200 font-bold text-[11px] flex items-center justify-center gap-1 shadow-[0_0_12px_rgba(0,240,255,0.5)]">
+                        <span>🚀</span><span>Nitro</span>
+                    </button>
+
+                    <!-- Bottom Row: Handbrake Drift, Brake/Reverse, Gas Pedal -->
+                    <button id="btnDrift" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-purple-700/85 border-2 border-purple-300 text-white flex flex-col items-center justify-center shadow-lg">
+                        <span class="text-base leading-none">💨</span>
+                        <span class="text-[9px] font-extrabold mt-0.5">DRIFT</span>
+                    </button>
+
+                    <button id="btnBrake" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-600/85 border-2 border-amber-300 text-white flex flex-col items-center justify-center shadow-lg">
+                        <span class="text-base leading-none">⬇️</span>
+                        <span class="text-[9px] font-extrabold mt-0.5">REM</span>
+                    </button>
+
+                    <button id="btnGas" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 border-2 border-emerald-200 text-white flex flex-col items-center justify-center shadow-[0_0_22px_rgba(16,185,129,0.75)]">
+                        <span class="text-2xl leading-none">⬆️</span>
+                        <span class="text-xs font-black mt-0.5">GAS</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 5. WASTED OVERLAY ==================== -->
+    <div id="wastedOverlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+        <div class="vice-glass rounded-3xl p-6 max-w-sm w-full text-center border-2 border-rose-500">
+            <h2 class="font-vice text-4xl sm:text-5xl font-black text-rose-500 tracking-wider mb-2 drop-shadow-[0_0_18px_rgba(244,63,94,0.9)]">
+                WASTED
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-300 mb-5">
+                Tim Medis Leonida Vice Hospital telah memulihkan kondisi Anda.
+            </p>
+            <button onclick="respawn3DPlayer()" class="w-full py-3 rounded-xl font-vice font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 border border-white/30">
+                BANGKIT KEMBALI (RESPAWN)
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 6. 3D ENGINE & ORIENTATION CONTROLLER SCRIPT ==================== -->
+    <script>
+        /**********************************************************************
+         * A. AUTOMATIC PORTRAIT-TO-LANDSCAPE ORIENTATION DETECTOR
+         **********************************************************************/
+        let bypassPortraitLock = false;
+        let isPortraitBlocked = false;
+
+        function checkDeviceOrientation() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const isPortrait = h > w;
+            const overlay = document.getElementById('portraitOverlay');
+            const resInfo = document.getElementById('portraitResInfo');
+
+            if (resInfo) {
+                const dpr = window.devicePixelRatio || 1;
+                resInfo.textContent = `Resolusi Layar: ${Math.round(w * dpr)}×${Math.round(h * dpr)}px (${isPortrait ? 'Portrait Tegak' : 'Landscape Mendatar'})`;
+            }
+
+            if (isPortrait && !bypassPortraitLock) {
+                isPortraitBlocked = true;
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                isPortraitBlocked = false;
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        async function lockLandscapeAndFullscreen() {
+            try {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) {
+                    await docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) {
+                    await docEl.webkitRequestFullscreen();
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (err) {
+                // If device browser requires manual physical rotation, inform user gently
+            }
+            checkDeviceOrientation();
+        }
+
+        function forceBypassPortrait() {
+            bypassPortraitLock = true;
+            checkDeviceOrientation();
+        }
+
+        function toggleFullscreenGame() {
+            if (!document.fullscreenElement) {
+                lockLandscapeAndFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            checkDeviceOrientation();
+            onWindowResize3D();
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                checkDeviceOrientation();
+                onWindowResize3D();
+            }, 150);
+        });
+        if (window.matchMedia) {
+            window.matchMedia('(orientation: portrait)').addEventListener('change', checkDeviceOrientation);
+        }
+
+        /**********************************************************************
+         * B. SYNTHESIZED WEB AUDIO SOUND ENGINE
+         **********************************************************************/
+        const Audio3D = {
+            ctx: null,
+            muted: false,
+            lastEngineTick: 0,
+            lastSirenTick: 0,
+            init() {
+                if (!this.ctx) {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    if (AC) this.ctx = new AC();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            shoot(freq = 220) {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, t);
+                    osc.frequency.exponentialRampToValueAtTime(35, t + 0.11);
+                    gain.gain.setValueAtTime(0.22, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.12);
+                } catch (e) {}
+            },
+            cash() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(987.77, t);
+                    osc.frequency.setValueAtTime(1318.5, t + 0.08);
+                    gain.gain.setValueAtTime(0.18, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.26);
+                } catch (e) {}
+            },
+            swoosh() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(180, t);
+                    osc.frequency.exponentialRampToValueAtTime(520, t + 0.35);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+                } catch (e) {}
+            },
+            engine(speedAbs) {
+                if (this.muted || !this.ctx) return;
+                const now = performance.now();
+                if (now - this.lastEngineTick < 85) return;
+                this.lastEngineTick = now;
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(50 + speedAbs * 75, t);
+                    gain.gain.setValueAtTime(0.035, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.085);
+                } catch (e) {}
+            },
+            siren() {
+                if (this.muted || !this.ctx) return;
+                const now = performance.now();
+                if (now - this.lastSirenTick < 650) return;
+                this.lastSirenTick = now;
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(680, t);
+                    osc.frequency.linearRampToValueAtTime(940, t + 0.28);
+                    osc.frequency.linearRampToValueAtTime(680, t + 0.55);
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.58);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.6);
+                } catch (e) {}
+            }
+        };
+
+        function toggleAudioMute() {
+            Audio3D.muted = !Audio3D.muted;
+            document.getElementById('muteHudBtn').textContent = Audio3D.muted ? '🔇' : '🔊';
+        }
+
+        /**********************************************************************
+         * C. THREE.JS 3D ENGINE & 4K / 1080p / 720p GRAPHICS SCALER
+         **********************************************************************/
+        const canvas3D = document.getElementById('webglCanvas');
+        const radarCanvas = document.getElementById('radarCanvas');
+        const rCtx = radarCanvas.getContext('2d');
+
+        let scene, camera, renderer, sunLight, ambientLight;
+        let roadMaterial, waterMesh, missionBeaconMesh;
+        let currentQuality = '4k'; // '720p' | '1080p' | '4k'
+        let isGameStarted = false;
+
+        // FPS Counter tracking
+        let frameCount = 0;
+        let lastFpsUpdate = performance.now();
+        let currentFps = 60;
+
+        // World Entities Arrays
+        const buildingBoxes = []; // For AABB collision
+        const vehicles3D = [];
+        const peds3D = [];
+        const pickups3D = [];
+        const bullets3D = [];
+        const particles3D = [];
+        let payNSprayZone = { x: -75, z: -75, r: 16 };
+
+        // Protagonists (Lucia & Jason both exist in 3D space!)
+        let activeCharId = 'lucia';
+        const protagonists = {
+            lucia: { mesh: null, x: 0, z: 25, rotY: 0, vy: 0, onGround: true },
+            jason: { mesh: null, x: 60, z: -55, rotY: Math.PI, vy: 0, onGround: true }
+        };
+
+        // Player Gameplay State
+        const state = {
+            health: 100,
+            armor: 100,
+            cash: 1500,
+            wanted: 0,
+            wantedDecay: 0,
+            inVehicle: null,
+            camYaw: 0,
+            camPitch: 0.28,
+            camMode: 0, // 0: Chase, 1: Far, 2: Hood/FPV
+            switchingChar: false,
+            switchProgress: 0,
+            switchFrom: null,
+            switchTo: null,
+            lastFireTime: 0,
+            weaponIndex: 1,
+            missionTarget: { x: 88, z: -60, reward: 1000, title: 'Ambil Koper VIP di Ocean Beach' }
+        };
+
+        const WEAPONS_3D = [
+            { name: 'Tangan Kosong', icon: '👊', delay: 400, range: 4, dmg: 25, freq: 120 },
+            { name: 'Vice SMG', icon: '🔫', delay: 110, range: 95, dmg: 25, freq: 290 },
+            { name: 'Carbine 4K', icon: '💥', delay: 140, range: 130, dmg: 40, freq: 210 },
+            { name: 'Heavy Shotgun', icon: '🔥', delay: 520, range: 65, dmg: 85, freq: 140 }
+        ];
+
+        // Multi-Touch & Keyboard Input State
+        const keys = {};
+        const input = {
+            joyX: 0,
+            joyY: 0,
+            joyActive: false,
+            joyTouchId: null,
+            camTouchId: null,
+            lastCamX: 0,
+            lastCamY: 0,
+            shoot: false,
+            sprint: false,
+            jump: false,
+            gas: false,
+            brake: false,
+            drift: false,
+            nitro: false
+        };
+
+        function initThreeJSWorld() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x160729);
+            scene.fog = new THREE.FogExp2(0x210936, 0.0024);
+
+            camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.5, 650);
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas3D,
+                antialias: true,
+                powerPreference: 'high-performance'
+            });
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.18;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Golden Hour Vice City Sunset Lighting
+            const hemiLight = new THREE.HemisphereLight(0xff7ae0, 0x120b29, 0.85);
+            scene.add(hemiLight);
+
+            sunLight = new THREE.DirectionalLight(0xff9e5e, 1.45);
+            sunLight.position.set(140, 180, 90);
+            sunLight.castShadow = true;
+            sunLight.shadow.camera.near = 10;
+            sunLight.shadow.camera.far = 480;
+            const d = 180;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            scene.add(sunLight);
+
+            // Neon Sunset Sun Sphere on the Horizon
+            const sunGeo = new THREE.SphereGeometry(38, 32, 32);
+            const sunMat = new THREE.MeshBasicMaterial({ color: 0xff2a85 });
+            const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+            sunMesh.position.set(280, 75, -240);
+            scene.add(sunMesh);
+
+            buildCityEnvironment();
+            buildProtagonists();
+            buildTrafficVehicles();
+            buildPedestriansAndPickups();
+
+            setGraphicsQuality(currentQuality);
+        }
+
+        function buildCityEnvironment() {
+            // 1. Reflective Asphalt Ground Plane
+            const groundGeo = new THREE.PlaneGeometry(520, 520);
+            roadMaterial = new THREE.MeshStandardMaterial({
+                color: 0x161824,
+                roughness: 0.22,
+                metalness: 0.45
+            });
+            const ground = new THREE.Mesh(groundGeo, roadMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // 2. Road Grid Markings (Avenues at -120, -60, 0, 60, 120)
+            const roadPositions = [-120, -60, 0, 60, 120];
+            const stripeMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            const neonCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+            roadPositions.forEach(pos => {
+                // North-South Avenue Line
+                const lineNS = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 420), stripeMat);
+                lineNS.rotation.x = -Math.PI / 2;
+                lineNS.position.set(pos, 0.04, 0);
+                scene.add(lineNS);
+
+                // East-West Avenue Line
+                const lineEW = new THREE.Mesh(new THREE.PlaneGeometry(360, 0.5), stripeMat);
+                lineEW.rotation.x = -Math.PI / 2;
+                lineEW.position.set(-30, 0.04, pos);
+                scene.add(lineEW);
+            });
+
+            // 3. Ocean Beach Sand & Animated 3D Water (East Side X > 110)
+            const sandGeo = new THREE.PlaneGeometry(75, 520);
+            const sandMat = new THREE.MeshStandardMaterial({ color: 0xe6c280, roughness: 0.85 });
+            const sand = new THREE.Mesh(sandGeo, sandMat);
+            sand.rotation.x = -Math.PI / 2;
+            sand.position.set(145, 0.03, 0);
+            sand.receiveShadow = true;
+            scene.add(sand);
+
+            const waterGeo = new THREE.PlaneGeometry(220, 520, 24, 24);
+            const waterMat = new THREE.MeshStandardMaterial({
+                color: 0x00c8ff,
+                roughness: 0.12,
+                metalness: 0.75,
+                emissive: 0x002b4d,
+                emissiveIntensity: 0.4
+            });
+            waterMesh = new THREE.Mesh(waterGeo, waterMat);
+            waterMesh.rotation.x = -Math.PI / 2;
+            waterMesh.position.set(270, 0.08, 0);
+            scene.add(waterMesh);
+
+            // 4. Vice City Skyscrapers with Neon Emissive Trim
+            const blockCenters = [-90, -30, 30, 85];
+            const neonColors = [0xff2a85, 0x00f0ff, 0xa855f7, 0xfacc15, 0x10b981];
+
+            blockCenters.forEach((bx, ix) => {
+                blockCenters.forEach((bz, iz) => {
+                    // Leave (-75, -75) open for Pay 'n' Spray garage
+                    if (ix === 0 && iz === 0) return;
+                    // Leave (30, 30) open as central plaza
+                    if (ix === 2 && iz === 2) return;
+
+                    const bw = 22 + ((ix + iz) % 3) * 4;
+                    const bd = 22 + ((ix * 2 + iz) % 3) * 4;
+                    const bh = 24 + ((ix * 3 + iz * 2) % 5) * 14;
+                    const neonCol = neonColors[(ix + iz) % neonColors.length];
+
+                    const bGroup = new THREE.Group();
+                    bGroup.position.set(bx, 0, bz);
+
+                    const bodyGeo = new THREE.BoxGeometry(bw, bh, bd);
+                    const bodyMat = new THREE.MeshStandardMaterial({
+                        color: 0x1a152e,
+                        roughness: 0.35,
+                        metalness: 0.5
+                    });
+                    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+                    bodyMesh.position.y = bh / 2;
+                    bodyMesh.castShadow = true;
+                    bodyMesh.receiveShadow = true;
+                    bGroup.add(bodyMesh);
+
+                    // Glowing Roof & Vertical Neon Strips
+                    const trimMat = new THREE.MeshBasicMaterial({ color: neonCol });
+                    const roofCrown = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.6, 0.9, bd + 0.6), trimMat);
+                    roofCrown.position.y = bh - 0.5;
+                    bGroup.add(roofCrown);
+
+                    const midStrip = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.4, 0.5, bd + 0.4), trimMat);
+                    midStrip.position.y = bh * 0.55;
+                    bGroup.add(midStrip);
+
+                    scene.add(bGroup);
+
+                    buildingBoxes.push({
+                        minX: bx - bw / 2 - 1.2,
+                        maxX: bx + bw / 2 + 1.2,
+                        minZ: bz - bd / 2 - 1.2,
+                        maxZ: bz + bd / 2 + 1.2
+                    });
+                });
+            });
+
+            // 5. Pay 'n' Spray Neon Garage at (-75, -75)
+            const garageGroup = new THREE.Group();
+            garageGroup.position.set(payNSprayZone.x, 0, payNSprayZone.z);
+            const archGeo = new THREE.TorusGeometry(9, 1.1, 12, 32, Math.PI);
+            const archMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+            const arch = new THREE.Mesh(archGeo, archMat);
+            arch.position.y = 0.5;
+            garageGroup.add(arch);
+
+            const padGeo = new THREE.CylinderGeometry(11, 11, 0.3, 24);
+            const padMat = new THREE.MeshBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.45 });
+            const pad = new THREE.Mesh(padGeo, padMat);
+            pad.position.y = 0.15;
+            garageGroup.add(pad);
+            scene.add(garageGroup);
+
+            // 6. 3D Palm Trees along Ocean Drive & Avenues
+            for (let z = -180; z <= 180; z += 26) {
+                createPalmTree3D(108, z);
+                createPalmTree3D(50, z + 10);
+                createPalmTree3D(-10, z);
+            }
+
+            // 7. Mission Beacon Cylinder
+            const beaconGeo = new THREE.CylinderGeometry(4.5, 4.5, 28, 24, 1, true);
+            const beaconMat = new THREE.MeshBasicMaterial({
+                color: 0xff2a85,
+                transparent: true,
+                opacity: 0.42,
+                side: THREE.DoubleSide
+            });
+            missionBeaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
+            missionBeaconMesh.position.set(state.missionTarget.x, 14, state.missionTarget.z);
+            scene.add(missionBeaconMesh);
+        }
+
+        function createPalmTree3D(x, z) {
+            const tree = new THREE.Group();
+            tree.position.set(x, 0, z);
+
+            const trunkGeo = new THREE.CylinderGeometry(0.35, 0.65, 11, 8);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.9 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 5.5;
+            trunk.castShadow = true;
+            tree.add(trunk);
+
+            const leafMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.6 });
+            for (let i = 0; i < 6; i++) {
+                const leafGeo = new THREE.BoxGeometry(4.5, 0.2, 1.1);
+                const leaf = new THREE.Mesh(leafGeo, leafMat);
+                const angle = (i * Math.PI) / 3;
+                leaf.position.set(Math.cos(angle) * 2.1, 10.8, Math.sin(angle) * 2.1);
+                leaf.rotation.y = -angle;
+                leaf.rotation.z = -0.32;
+                leaf.castShadow = true;
+                tree.add(leaf);
+            }
+            scene.add(tree);
+        }
+
+        /**********************************************************************
+         * D. 3D ARTICULATED HUMANOID CHARACTERS (LUCIA & JASON)
+         **********************************************************************/
+        function createHumanoidMesh(shirtColor, hairColor, pantsColor) {
+            const group = new THREE.Group();
+
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xe09f7d, roughness: 0.6 });
+            const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.4 });
+            const pantsMat = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.7 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.8 });
+
+            // Torso
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.45, 0.6), shirtMat);
+            torso.position.y = 2.15;
+            torso.castShadow = true;
+            group.add(torso);
+
+            // Head & Hair
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 14), skinMat);
+            head.position.y = 3.25;
+            head.castShadow = true;
+            group.add(head);
+
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.47, 12, 12), hairMat);
+            hair.position.set(0, 3.35, -0.06);
+            group.add(hair);
+
+            // Articulated Limbs
+            const legGeo = new THREE.BoxGeometry(0.42, 1.35, 0.45);
+            const leftLeg = new THREE.Mesh(legGeo, pantsMat);
+            leftLeg.position.set(-0.3, 0.75, 0);
+            leftLeg.castShadow = true;
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeo, pantsMat);
+            rightLeg.position.set(0.3, 0.75, 0);
+            rightLeg.castShadow = true;
+            group.add(rightLeg);
+
+            const armGeo = new THREE.BoxGeometry(0.35, 1.25, 0.35);
+            const leftArm = new THREE.Mesh(armGeo, skinMat);
+            leftArm.position.set(-0.78, 2.15, 0);
+            group.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeo, skinMat);
+            rightArm.position.set(0.78, 2.15, 0.25);
+            rightArm.rotation.x = -Math.PI / 3;
+            group.add(rightArm);
+
+            // 3D Weapon Mesh in Right Hand
+            const gun = new THREE.Mesh(
+                new THREE.BoxGeometry(0.18, 0.24, 0.85),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 })
+            );
+            gun.position.set(0.78, 2.25, 0.75);
+            group.add(gun);
+
+            group.userData = { leftLeg, rightLeg, leftArm, rightArm, gun };
+            return group;
+        }
+
+        function buildProtagonists() {
+            protagonists.lucia.mesh = createHumanoidMesh(0xff2a85, 0x1a0d26, 0x1e293b);
+            protagonists.lucia.mesh.position.set(protagonists.lucia.x, 0, protagonists.lucia.z);
+            scene.add(protagonists.lucia.mesh);
+
+            protagonists.jason.mesh = createHumanoidMesh(0x00d2ff, 0xc2924c, 0x0f172a);
+            protagonists.jason.mesh.position.set(protagonists.jason.x, 0, protagonists.jason.z);
+            scene.add(protagonists.jason.mesh);
+        }
+
+        /**********************************************************************
+         * E. 3D SUPERCAR, TRAFFIC & POLICE CRUISER BUILDER
+         **********************************************************************/
+        function createCar3D(config) {
+            const carGroup = new THREE.Group();
+            carGroup.position.set(config.x, 0, config.z);
+            carGroup.rotation.y = config.rotY || 0;
+
+            // Glossy PBR Paint Material
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: config.color,
+                roughness: 0.14,
+                metalness: 0.72
+            });
+
+            // Lower Chassis
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.05, 6.8), bodyMat);
+            chassis.position.y = 1.05;
+            chassis.castShadow = true;
+            chassis.receiveShadow = true;
+            carGroup.add(chassis);
+
+            // Aerodynamic Cabin
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9 });
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.85, 0.95, 3.4), cabinMat);
+            cabin.position.set(0, 1.95, -0.35);
+            cabin.castShadow = true;
+            carGroup.add(cabin);
+
+            // Glowing Headlights & Taillights
+            const headMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            const tailMat = new THREE.MeshBasicMaterial({ color: 0xff1e42 });
+            const hlL = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.28, 0.15), headMat);
+            hlL.position.set(-1.1, 1.15, 3.42);
+            const hlR = hlL.clone();
+            hlR.position.x = 1.1;
+            carGroup.add(hlL, hlR);
+
+            const tlL = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.25, 0.15), tailMat);
+            tlL.position.set(-1.05, 1.2, -3.42);
+            const tlR = tlL.clone();
+            tlR.position.x = 1.05;
+            carGroup.add(tlL, tlR);
+
+            // Nitro Flame Mesh (Hidden unless Nitro active)
+            const nitroMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+            const nitroFlame = new THREE.Mesh(new THREE.ConeGeometry(0.45, 2.2, 8), nitroMat);
+            nitroFlame.rotation.x = -Math.PI / 2;
+            nitroFlame.position.set(0, 0.8, -4.4);
+            nitroFlame.visible = false;
+            carGroup.add(nitroFlame);
+
+            // 4 Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.45, 14);
+            wheelGeo.rotateZ(Math.PI / 2);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
+            const wheelPositions = [
+                [-1.7, 0.65, 2.1],
+                [1.7, 0.65, 2.1],
+                [-1.7, 0.65, -2.1],
+                [1.7, 0.65, -2.1]
+            ];
+            wheelPositions.forEach(wp => {
+                const w = new THREE.Mesh(wheelGeo, wheelMat);
+                w.position.set(wp[0], wp[1], wp[2]);
+                carGroup.add(w);
+            });
+
+            // Police Lightbar if Leonida PD
+            let sirenBar = null;
+            if (config.isPolice) {
+                sirenBar = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.7, 0.25, 0.45),
+                    new THREE.MeshBasicMaterial({ color: 0xef4444 })
+                );
+                sirenBar.position.set(0, 2.55, -0.3);
+                carGroup.add(sirenBar);
+            }
+
+            scene.add(carGroup);
+
+            vehicles3D.push({
+                mesh: carGroup,
+                name: config.name,
+                x: config.x,
+                z: config.z,
+                rotY: config.rotY || 0,
+                speed: 0,
+                maxSpeed: config.maxSpeed || 1.15,
+                accel: config.accel || 0.028,
+                isPolice: !!config.isPolice,
+                aiDriver: !!config.aiDriver,
+                bodyMat,
+                nitroFlame,
+                sirenBar
+            });
+        }
+
+        function buildTrafficVehicles() {
+            // Parked Starter Supercars right next to Lucia
+            createCar3D({ name: 'Cheetah Vice 4K', x: 9, z: 22, rotY: Math.PI, color: 0xff2a85, maxSpeed: 1.35, accel: 0.034, aiDriver: false });
+            createCar3D({ name: 'Infernus Cyan GT', x: -10, z: 16, rotY: 0, color: 0x00f0ff, maxSpeed: 1.38, accel: 0.036, aiDriver: false });
+
+            // Moving Street Traffic & Police Units
+            const presets = [
+                { name: 'Stallion Muscle', color: 0xa855f7, maxSpeed: 1.15 },
+                { name: 'Vice City Cab', color: 0xfacc15, maxSpeed: 1.05 },
+                { name: 'Leonida PD Cruiser', color: 0x111827, maxSpeed: 1.28, isPolice: true },
+                { name: 'Banshee Roadster', color: 0x10b981, maxSpeed: 1.30 }
+            ];
+
+            const avenues = [-120, -60, 0, 60];
+            for (let i = 0; i < 14; i++) {
+                const p = presets[i % presets.length];
+                const ave = avenues[i % avenues.length];
+                createCar3D({
+                    name: p.name,
+                    x: ave + 3.5,
+                    z: -140 + i * 22,
+                    rotY: 0,
+                    color: p.color,
+                    maxSpeed: p.maxSpeed,
+                    isPolice: p.isPolice,
+                    aiDriver: true
+                });
+            }
+        }
+
+        function buildPedestriansAndPickups() {
+            const colors = [0x38bdf8, 0xf472b6, 0xfacc15, 0x4ade80, 0xc084fc];
+            for (let i = 0; i < 22; i++) {
+                const px = -110 + Math.random() * 210;
+                const pz = -130 + Math.random() * 260;
+                const mesh = createHumanoidMesh(colors[i % colors.length], 0x1e293b, 0x334155);
+                mesh.position.set(px, 0, pz);
+                scene.add(mesh);
+                peds3D.push({
+                    mesh,
+                    x: px,
+                    z: pz,
+                    rotY: Math.random() * Math.PI * 2,
+                    hp: 50
+                });
+            }
+
+            // Floating 3D Cash Bundles
+            const cashGeo = new THREE.BoxGeometry(1.4, 0.8, 1.4);
+            const cashMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+            for (let i = 0; i < 15; i++) {
+                const m = new THREE.Mesh(cashGeo, cashMat);
+                m.position.set(-100 + Math.random() * 200, 1.2, -100 + Math.random() * 200);
+                scene.add(m);
+                pickups3D.push(m);
+            }
+        }
+
+        /**********************************************************************
+         * F. GRAPHICS QUALITY SCALER (720p HD / 1080p FHD / 4K ULTRA)
+         **********************************************************************/
+        function setGraphicsQuality(tier) {
+            currentQuality = tier;
+            const dpr = window.devicePixelRatio || 1;
+
+            // Update Start Menu Buttons UI
+            ['720p', '1080p', '4k'].forEach(t => {
+                const btn = document.getElementById('preset' + t);
+                if (btn) {
+                    if (t === tier) {
+                        btn.className = 'p-2 rounded-xl border-2 border-pink-500 bg-pink-500/25 text-center shadow-[0_0_15px_rgba(255,42,133,0.4)] transition-all';
+                    } else {
+                        btn.className = 'p-2 rounded-xl border border-white/20 bg-black/40 text-center transition-all';
+                    }
+                }
+            });
+
+            if (!renderer) return;
+
+            let targetRatio = 1.0;
+            let label = '720p HD';
+            if (tier === '720p') {
+                targetRatio = Math.min(1.0, dpr);
+                sunLight.castShadow = false;
+                if (roadMaterial) roadMaterial.roughness = 0.55;
+                label = '720p HD';
+            } else if (tier === '1080p') {
+                targetRatio = Math.min(1.5, dpr * 1.15);
+                sunLight.castShadow = true;
+                sunLight.shadow.mapSize.width = 1024;
+                sunLight.shadow.mapSize.height = 1024;
+                if (roadMaterial) roadMaterial.roughness = 0.28;
+                label = '1080p FHD';
+            } else {
+                // 4K Ultra Ray-Gloss Mode
+                targetRatio = Math.min(2.5, Math.max(1.75, dpr * 1.5));
+                sunLight.castShadow = true;
+                sunLight.shadow.mapSize.width = 2048;
+                sunLight.shadow.mapSize.height = 2048;
+                if (roadMaterial) {
+                    roadMaterial.roughness = 0.14;
+                    roadMaterial.metalness = 0.62;
+                }
+                label = '4K ULTRA';
+            }
+
+            renderer.setPixelRatio(targetRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const hudBtn = document.getElementById('gfxHudBtn');
+            if (hudBtn) hudBtn.textContent = `✨ ${label}`;
+            const menuTag = document.getElementById('menuResTag');
+            if (menuTag) menuTag.textContent = `${label} ACTIVE`;
+        }
+
+        function cycleGraphicsPreset() {
+            const order = ['720p', '1080p', '4k'];
+            const next = order[(order.indexOf(currentQuality) + 1) % order.length];
+            setGraphicsQuality(next);
+            showCenterToast(`MODE GRAFIS: ${next.toUpperCase()}`, 'Kualitas Render 3D & Bayangan Diperbarui');
+        }
+
+        function onWindowResize3D() {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /**********************************************************************
+         * G. CHARACTER SWITCHER (SKY-CAM SWOOP) & GAMEPLAY ACTIONS
+         **********************************************************************/
+        function selectStartChar(charId) {
+            activeCharId = charId;
+            const cLucia = document.getElementById('cardLucia');
+            const cJason = document.getElementById('cardJason');
+            if (charId === 'lucia') {
+                cLucia.className = 'flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-pink-500 bg-pink-500/25 text-left transition-all';
+                cJason.className = 'flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-white/15 bg-white/5 text-left hover:bg-white/10 transition-all';
+            } else {
+                cJason.className = 'flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-cyan-400 bg-cyan-500/25 text-left transition-all';
+                cLucia.className = 'flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-white/15 bg-white/5 text-left hover:bg-white/10 transition-all';
+            }
+            updateCharBadgeUI();
+        }
+
+        function updateCharBadgeUI() {
+            document.getElementById('activeCharAvatar').textContent = activeCharId === 'lucia' ? '👩🏽‍🎤' : '👱🏼‍♂️';
+            document.getElementById('activeCharName').textContent = activeCharId.toUpperCase();
+        }
+
+        function launch3DGame(requestFull = false) {
+            Audio3D.init();
+            if (requestFull) {
+                lockLandscapeAndFullscreen();
+            }
+            document.getElementById('startMenu').classList.add('hidden');
+            const hud = document.getElementById('gameHud');
+            hud.classList.remove('hidden');
+            hud.classList.add('flex');
+
+            if (!isGameStarted) {
+                isGameStarted = true;
+                requestAnimationFrame(animate3DLoop);
+            }
+            showCenterToast(`WELCOME TO LEONIDA 3D, ${activeCharId.toUpperCase()}!`, `Mode Grafis ${currentQuality.toUpperCase()} Aktif`);
+        }
+
+        // GTA V/VI Style Sky-Cam Character Transition
+        function triggerCharacterSwitch() {
+            if (state.switchingChar) return;
+            if (state.inVehicle) interactVehicle(); // Exit car before switching
+
+            Audio3D.swoosh();
+            const targetId = activeCharId === 'lucia' ? 'jason' : 'lucia';
+            state.switchingChar = true;
+            state.switchProgress = 0;
+            state.switchFrom = { x: protagonists[activeCharId].x, z: protagonists[activeCharId].z };
+            state.switchTo = { x: protagonists[targetId].x, z: protagonists[targetId].z };
+            activeCharId = targetId;
+            updateCharBadgeUI();
+            showCenterToast(`BERALIH KE ${targetId.toUpperCase()}`, 'Transisi Kamera Satelit Leonida...');
+        }
+
+        function getActiveProtagonist() {
+            return protagonists[activeCharId];
+        }
+
+        function interactVehicle() {
+            Audio3D.init();
+            const hero = getActiveProtagonist();
+
+            if (state.inVehicle) {
+                // Exit Vehicle
+                const v = state.inVehicle;
+                hero.x = v.x - Math.cos(v.rotY) * 4.2;
+                hero.z = v.z + Math.sin(v.rotY) * 4.2;
+                hero.mesh.position.set(hero.x, 0, hero.z);
+                hero.mesh.visible = true;
+                v.nitroFlame.visible = false;
+                state.inVehicle = null;
+
+                document.getElementById('footButtons').classList.remove('hidden');
+                document.getElementById('footButtons').classList.add('grid');
+                document.getElementById('driveButtons').classList.add('hidden');
+                document.getElementById('driveButtons').classList.remove('grid');
+                document.getElementById('speedometerHud').classList.add('hidden');
+                document.getElementById('speedometerHud').classList.remove('flex');
+                document.getElementById('aimCrosshair').classList.remove('hidden');
+            } else {
+                // Find nearest 3D Vehicle
+                let nearest = null;
+                let bestD = 12;
+                for (const v of vehicles3D) {
+                    const d = Math.hypot(v.x - hero.x, v.z - hero.z);
+                    if (d < bestD) {
+                        bestD = d;
+                        nearest = v;
+                    }
+                }
+                if (nearest) {
+                    state.inVehicle = nearest;
+                    nearest.aiDriver = false;
+                    hero.mesh.visible = false;
+                    if (nearest.isPolice && state.wanted < 1) addWantedLevel(1);
+
+                    document.getElementById('currentCarLabel').textContent = nearest.name.toUpperCase();
+                    document.getElementById('footButtons').classList.add('hidden');
+                    document.getElementById('footButtons').classList.remove('grid');
+                    document.getElementById('driveButtons').classList.remove('hidden');
+                    document.getElementById('driveButtons').classList.add('grid');
+                    document.getElementById('speedometerHud').classList.remove('hidden');
+                    document.getElementById('speedometerHud').classList.add('flex');
+                    document.getElementById('aimCrosshair').classList.add('hidden');
+                    showCenterToast(nearest.name.toUpperCase(), 'Kendaraan 3D berhasil dikendarai!');
+                } else {
+                    showCenterToast('DEKATI MOBIL DULU', 'Berjalan ke dekat mobil untuk membajak');
+                }
+            }
+        }
+
+        function cycleCameraMode() {
+            state.camMode = (state.camMode + 1) % 3;
+            const names = ['Kamera Dekat (Chase)', 'Kamera Jauh (Wide)', 'Kamera Kap Mobil (FPV)'];
+            showCenterToast('SUDUT KAMERA 3D', names[state.camMode]);
+        }
+
+        function switchNextWeapon() {
+            state.weaponIndex = (state.weaponIndex + 1) % WEAPONS_3D.length;
+            const w = WEAPONS_3D[state.weaponIndex];
+            document.getElementById('hudWeaponIcon').textContent = w.icon;
+            document.getElementById('hudWeaponName').textContent = w.name;
+            const hero = getActiveProtagonist();
+            if (hero && hero.mesh.userData.gun) {
+                hero.mesh.userData.gun.visible = state.weaponIndex !== 0;
+            }
+        }
+
+        function fire3DWeapon() {
+            const now = performance.now();
+            const w = WEAPONS_3D[state.weaponIndex];
+            if (now - state.lastFireTime < w.delay) return;
+            state.lastFireTime = now;
+
+            const hero = getActiveProtagonist();
+            Audio3D.shoot(w.freq);
+
+            // Align character towards camera look direction when shooting
+            hero.rotY = state.camYaw + Math.PI;
+            hero.mesh.rotation.y = hero.rotY;
+
+            const dirX = Math.sin(hero.rotY);
+            const dirZ = Math.cos(hero.rotY);
+
+            // Spawn 3D Glowing Bullet Tracer
+            const tracerGeo = new THREE.SphereGeometry(0.18, 6, 6);
+            const tracerMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            const tracer = new THREE.Mesh(tracerGeo, tracerMat);
+            tracer.position.set(hero.x + dirX * 1.4, 2.3, hero.z + dirZ * 1.4);
+            scene.add(tracer);
+
+            bullets3D.push({
+                mesh: tracer,
+                vx: dirX * 2.6,
+                vz: dirZ * 2.6,
+                dmg: w.dmg,
+                life: 32
+            });
+        }
+
+        function addWantedLevel(stars = 1) {
+            state.wanted = Math.min(5, state.wanted + stars);
+            state.wantedDecay = 900;
+            refreshStatsHud();
+        }
+
+        function clearWantedStars() {
+            state.wanted = 0;
+            refreshStatsHud();
+            showCenterToast('WANTED LEVEL DIHAPUS', 'Polisi Leonida menghentikan pengejaran');
+        }
+
+        function refreshStatsHud() {
+            document.getElementById('hudCash').textContent = state.cash.toLocaleString();
+            document.getElementById('hudHealthBar').style.width = `${Math.max(0, state.health)}%`;
+            document.getElementById('hudArmorBar').style.width = `${Math.max(0, state.armor)}%`;
+
+            const starEls = document.querySelectorAll('#wantedStarsRow .star-item');
+            starEls.forEach((el, idx) => {
+                el.className = idx < state.wanted ? 'star-item star-wanted' : 'star-item text-gray-600';
+            });
+        }
+
+        let toastTimer = null;
+        function showCenterToast(title, sub) {
+            const el = document.getElementById('centerToast');
+            document.getElementById('toastHeading').textContent = title;
+            document.getElementById('toastSubtext').textContent = sub;
+            el.classList.remove('opacity-0', 'scale-90');
+            el.classList.add('opacity-100', 'scale-100');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('opacity-100', 'scale-100');
+                el.classList.add('opacity-0', 'scale-90');
+            }, 2400);
+        }
+
+        function respawn3DPlayer() {
+            document.getElementById('wastedOverlay').classList.add('hidden');
+            document.getElementById('wastedOverlay').classList.remove('flex');
+            state.health = 100;
+            state.armor = 100;
+            state.wanted = 0;
+            const hero = getActiveProtagonist();
+            hero.x = 0;
+            hero.z = 25;
+            refreshStatsHud();
+        }
+
+        /**********************************************************************
+         * H. MULTI-TOUCH JOYSTICK, CAMERA DRAG & KEYBOARD LISTENERS
+         **********************************************************************/
+        window.addEventListener('keydown', e => {
+            const k = e.key.toLowerCase();
+            keys[k] = true;
+            if (k === 'f' || k === 'enter') interactVehicle();
+            if (k === 'c') cycleCameraMode();
+            if (k === 'v') triggerCharacterSwitch();
+            if (k === 'q') switchNextWeapon();
+        });
+        window.addEventListener('keyup', e => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Virtual Analog Joystick
+        const joyContainer = document.getElementById('joyContainer');
+        const joyKnob = document.getElementById('joyStickKnob');
+        const maxJoyRadius = 40;
+
+        function updateJoystickPos(clientX, clientY) {
+            const rect = joyContainer.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxJoyRadius) {
+                dx = (dx / dist) * maxJoyRadius;
+                dy = (dy / dist) * maxJoyRadius;
+            }
+            joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            input.joyX = dx / maxJoyRadius;
+            input.joyY = dy / maxJoyRadius;
+        }
+
+        function resetJoystickPos() {
+            input.joyActive = false;
+            input.joyTouchId = null;
+            input.joyX = 0;
+            input.joyY = 0;
+            joyKnob.style.transform = 'translate(0px, 0px)';
+        }
+
+        joyContainer.addEventListener('touchstart', e => {
+            e.preventDefault();
+            Audio3D.init();
+            const t = e.changedTouches[0];
+            input.joyActive = true;
+            input.joyTouchId = t.identifier;
+            updateJoystickPos(t.clientX, t.clientY);
+        }, { passive: false });
+
+        joyContainer.addEventListener('touchmove', e => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if (t.identifier === input.joyTouchId) {
+                    updateJoystickPos(t.clientX, t.clientY);
+                }
+            }
+        }, { passive: false });
+
+        joyContainer.addEventListener('touchend', e => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === input.joyTouchId) {
+                    resetJoystickPos();
+                }
+            }
+        }, { passive: false });
+        joyContainer.addEventListener('touchcancel', resetJoystickPos);
+
+        // Right-Screen Touch Camera Orbit Look
+        const camZone = document.getElementById('cameraTouchZone');
+        camZone.addEventListener('touchstart', e => {
+            const t = e.changedTouches[0];
+            input.camTouchId = t.identifier;
+            input.lastCamX = t.clientX;
+            input.lastCamY = t.clientY;
+        }, { passive: true });
+
+        camZone.addEventListener('touchmove', e => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if (t.identifier === input.camTouchId) {
+                    const dx = t.clientX - input.lastCamX;
+                    const dy = t.clientY - input.lastCamY;
+                    input.lastCamX = t.clientX;
+                    input.lastCamY = t.clientY;
+                    state.camYaw -= dx * 0.007;
+                    state.camPitch = Math.max(0.08, Math.min(0.85, state.camPitch + dy * 0.005));
+                }
+            }
+        }, { passive: true });
+
+        // Desktop Mouse Drag Camera Orbit
+        let mouseDragging = false;
+        canvas3D.addEventListener('mousedown', e => {
+            mouseDragging = true;
+            input.lastCamX = e.clientX;
+            input.lastCamY = e.clientY;
+        });
+        window.addEventListener('mouseup', () => { mouseDragging = false; });
+        window.addEventListener('mousemove', e => {
+            if (!mouseDragging) return;
+            const dx = e.clientX - input.lastCamX;
+            const dy = e.clientY - input.lastCamY;
+            input.lastCamX = e.clientX;
+            input.lastCamY = e.clientY;
+            state.camYaw -= dx * 0.006;
+            state.camPitch = Math.max(0.08, Math.min(0.85, state.camPitch + dy * 0.004));
+        });
+
+        // Hold Touch Button Helper
+        function bindActionBtn(id, prop) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const onDown = e => { e.preventDefault(); Audio3D.init(); input[prop] = true; el.classList.add('pressed'); };
+            const onUp = e => { e.preventDefault(); input[prop] = false; el.classList.remove('pressed'); };
+            el.addEventListener('touchstart', onDown, { passive: false });
+            el.addEventListener('touchend', onUp, { passive: false });
+            el.addEventListener('touchcancel', onUp, { passive: false });
+            el.addEventListener('mousedown', onDown);
+            el.addEventListener('mouseup', onUp);
+            el.addEventListener('mouseleave', onUp);
+        }
+
+        bindActionBtn('btnShoot', 'shoot');
+        bindActionBtn('btnSprint', 'sprint');
+        bindActionBtn('btnJump', 'jump');
+        bindActionBtn('btnGas', 'gas');
+        bindActionBtn('btnBrake', 'brake');
+        bindActionBtn('btnDrift', 'drift');
+        bindActionBtn('btnNitro', 'nitro');
+
+        /**********************************************************************
+         * I. 3D PHYSICS, COLLISIONS & MAIN GAME LOOP
+         **********************************************************************/
+        function collideWithBuildings(x, z, pad = 1.5) {
+            for (const b of buildingBoxes) {
+                if (x > b.minX - pad && x < b.maxX + pad && z > b.minZ - pad && z < b.maxZ + pad) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function update3DPhysics(now) {
+            const hero = getActiveProtagonist();
+
+            // Wanted Level Natural Decay
+            if (state.wanted > 0) {
+                state.wantedDecay--;
+                if (state.wantedDecay <= 0) {
+                    state.wanted = Math.max(0, state.wanted - 1);
+                    state.wantedDecay = 800;
+                    refreshStatsHud();
+                }
+            }
+
+            // Animate Ocean Waves & Mission Beacon
+            if (waterMesh) {
+                waterMesh.position.x = 270 + Math.sin(now * 0.002) * 2.2;
+            }
+            if (missionBeaconMesh) {
+                missionBeaconMesh.rotation.y += 0.02;
+            }
+
+            // 1. CHARACTER SWITCH SKY-CAM TRANSITION
+            if (state.switchingChar) {
+                state.switchProgress += 0.022;
+                const p = state.switchProgress;
+                const curX = state.switchFrom.x + (state.switchTo.x - state.switchFrom.x) * p;
+                const curZ = state.switchFrom.z + (state.switchTo.z - state.switchFrom.z) * p;
+                // Parabolic Sky Altitude
+                const skyHeight = 16 + Math.sin(p * Math.PI) * 95;
+                camera.position.set(curX, skyHeight, curZ + 22);
+                camera.lookAt(curX, 2, curZ);
+
+                if (p >= 1) {
+                    state.switchingChar = false;
+                }
+                return;
+            }
+
+            // Combined Input Vector
+            let inX = input.joyX;
+            let inY = input.joyY;
+            if (keys['w'] || keys['arrowup']) inY -= 1;
+            if (keys['s'] || keys['arrowdown']) inY += 1;
+            if (keys['a'] || keys['arrowleft']) inX -= 1;
+            if (keys['d'] || keys['arrowright']) inX += 1;
+
+            // 2. ON-FOOT 3D MOVEMENT & ANIMATION
+            if (!state.inVehicle) {
+                const mag = Math.min(1, Math.hypot(inX, inY));
+                const isSprint = input.sprint || keys['shift'];
+                const moveSpeed = (isSprint ? 0.58 : 0.34) * (activeCharId === 'lucia' ? 1.12 : 1.0);
+
+                if (mag > 0.12) {
+                    // Move relative to 3D Camera Yaw
+                    const joyAngle = Math.atan2(inX, inY);
+                    const targetYaw = state.camYaw + joyAngle;
+                    hero.rotY = targetYaw;
+                    hero.mesh.rotation.y = hero.rotY;
+
+                    const nx = hero.x + Math.sin(targetYaw) * moveSpeed * mag;
+                    const nz = hero.z + Math.cos(targetYaw) * moveSpeed * mag;
+
+                    if (!collideWithBuildings(nx, hero.z, 1.2)) hero.x = Math.max(-190, Math.min(165, nx));
+                    if (!collideWithBuildings(hero.x, nz, 1.2)) hero.z = Math.max(-190, Math.min(190, nz));
+
+                    // Limb Swing Animation
+                    const swing = Math.sin(now * (isSprint ? 0.018 : 0.011)) * 0.65;
+                    hero.mesh.userData.leftLeg.rotation.x = swing;
+                    hero.mesh.userData.rightLeg.rotation.x = -swing;
+                    hero.mesh.userData.leftArm.rotation.x = -swing * 0.7;
+                } else {
+                    hero.mesh.userData.leftLeg.rotation.x = 0;
+                    hero.mesh.userData.rightLeg.rotation.x = 0;
+                    hero.mesh.userData.leftArm.rotation.x = 0;
+                }
+
+                // Jump Physics
+                if ((input.jump || keys[' ']) && hero.onGround) {
+                    hero.vy = 0.36;
+                    hero.onGround = false;
+                }
+                hero.mesh.position.y += hero.vy;
+                if (hero.mesh.position.y > 0) {
+                    hero.vy -= 0.022;
+                } else {
+                    hero.mesh.position.y = 0;
+                    hero.vy = 0;
+                    hero.onGround = true;
+                }
+
+                hero.mesh.position.x = hero.x;
+                hero.mesh.position.z = hero.z;
+
+                // Fire Weapon Check
+                if (input.shoot) {
+                    fire3DWeapon();
+                }
+
+                // Check nearby vehicle for glowing Hijack button
+                let nearV = null;
+                for (const v of vehicles3D) {
+                    if (Math.hypot(v.x - hero.x, v.z - hero.z) < 11) {
+                        nearV = v;
+                        break;
+                    }
+                }
+                const hijackBtn = document.getElementById('btnHijack');
+                const hijackTxt = document.getElementById('hijackBtnText');
+                if (nearV) {
+                    hijackBtn.classList.add('hijack-ready');
+                    hijackTxt.textContent = `Bajak ${nearV.name}`;
+                } else {
+                    hijackBtn.classList.remove('hijack-ready');
+                    hijackTxt.textContent = 'Naik Mobil';
+                }
+
+                // Smooth Third-Person Over-Shoulder Camera
+                const camDist = 11.5;
+                const targetCamX = hero.x + Math.sin(state.camYaw) * camDist;
+                const targetCamZ = hero.z + Math.cos(state.camYaw) * camDist;
+                const targetCamY = hero.mesh.position.y + 3.2 + state.camPitch * 11;
+                camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.18);
+                camera.lookAt(hero.x, hero.mesh.position.y + 2.5, hero.z);
+            }
+
+            // 3. 3D VEHICLE DRIVING PHYSICS & DRIFTING
+            else {
+                const car = state.inVehicle;
+                const gas = input.gas || keys['w'] || keys['arrowup'] || input.joyY < -0.35;
+                const brake = input.brake || keys['s'] || keys['arrowdown'] || input.joyY > 0.35;
+                const nitro = input.nitro || keys['shift'];
+                const drift = input.drift || keys[' '];
+
+                const maxSpd = nitro ? car.maxSpeed * 1.35 : car.maxSpeed;
+                if (gas) {
+                    car.speed = Math.min(maxSpd, car.speed + car.accel * (nitro ? 1.6 : 1));
+                } else if (brake) {
+                    car.speed = Math.max(-car.maxSpeed * 0.45, car.speed - car.accel * 1.3);
+                } else {
+                    car.speed *= 0.97;
+                }
+
+                car.nitroFlame.visible = nitro && car.speed > 0.3;
+
+                // Steering with Left Joystick X or A/D keys
+                if (Math.abs(car.speed) > 0.04) {
+                    const steerInput = -inX;
+                    const driftFactor = drift ? 1.45 : 1.0;
+                    car.rotY += steerInput * 0.045 * driftFactor * Math.sign(car.speed);
+
+                    // Spawn Drift Smoke Particles
+                    if (drift && Math.abs(car.speed) > 0.5) {
+                        const smoke = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.45, 6, 6),
+                            new THREE.MeshBasicMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.6 })
+                        );
+                        smoke.position.set(car.x, 0.4, car.z);
+                        scene.add(smoke);
+                        particles3D.push({ mesh: smoke, life: 18 });
+                    }
+                }
+
+                const nextX = car.x + Math.sin(car.rotY) * car.speed;
+                const nextZ = car.z + Math.cos(car.rotY) * car.speed;
+
+                if (!collideWithBuildings(nextX, nextZ, 2.6)) {
+                    car.x = Math.max(-195, Math.min(165, nextX));
+                    car.z = Math.max(-195, Math.min(195, nextZ));
+                } else {
+                    car.speed *= -0.4;
+                }
+
+                car.mesh.position.set(car.x, 0, car.z);
+                car.mesh.rotation.y = car.rotY;
+                hero.x = car.x;
+                hero.z = car.z;
+
+                // Engine Audio & Speedometer HUD
+                if (Math.abs(car.speed) > 0.08) Audio3D.engine(Math.abs(car.speed));
+                document.getElementById('speedValue').textContent = Math.round(Math.abs(car.speed) * 195);
+
+                // Pay 'n' Spray Garage Check
+                if (Math.hypot(car.x - payNSprayZone.x, car.z - payNSprayZone.z) < payNSprayZone.r) {
+                    if (state.wanted > 0 || state.health < 100) {
+                        state.wanted = 0;
+                        state.health = 100;
+                        const freshColors = [0xff2a85, 0x00f0ff, 0xfacc15, 0x10b981, 0xa855f7];
+                        car.bodyMat.color.setHex(freshColors[Math.floor(Math.random() * freshColors.length)]);
+                        Audio3D.cash();
+                        refreshStatsHud();
+                        showCenterToast("PAY 'N' SPRAY SELESAI!", 'Wanted Level Dihapus & Cat Mobil 4K Baru!');
+                    }
+                }
+
+                // Driving 3D Camera Modes (Chase, Wide, Hood FPV)
+                state.camYaw = car.rotY + Math.PI;
+                if (state.camMode === 2) {
+                    // Hood First-Person Camera
+                    camera.position.set(car.x + Math.sin(car.rotY) * 0.8, 2.5, car.z + Math.cos(car.rotY) * 0.8);
+                    camera.lookAt(car.x + Math.sin(car.rotY) * 30, 2.2, car.z + Math.cos(car.rotY) * 30);
+                } else {
+                    const dist = state.camMode === 1 ? 21 : 14.5;
+                    const height = state.camMode === 1 ? 8.5 : 5.5;
+                    const cx = car.x - Math.sin(car.rotY) * dist;
+                    const cz = car.z - Math.cos(car.rotY) * dist;
+                    camera.position.lerp(new THREE.Vector3(cx, height, cz), 0.16);
+                    camera.lookAt(car.x + Math.sin(car.rotY) * 6, 1.8, car.z + Math.cos(car.rotY) * 6);
+                }
+            }
+
+            // 4. UPDATE AI TRAFFIC & LEONIDA POLICE PURSUIT
+            for (const v of vehicles3D) {
+                if (v === state.inVehicle) continue;
+
+                if (v.isPolice && v.sirenBar) {
+                    const flashRed = Math.floor(now / 150) % 2 === 0;
+                    v.sirenBar.material.color.setHex(flashRed ? 0xef4444 : 0x3b82f6);
+                }
+
+                if (v.isPolice && state.wanted > 0) {
+                    // Police Chases Active Protagonist
+                    const dx = hero.x - v.x;
+                    const dz = hero.z - v.z;
+                    const dist = Math.hypot(dx, dz);
+                    if (dist < 110) Audio3D.siren();
+
+                    v.rotY = Math.atan2(dx, dz);
+                    v.speed = 0.72;
+                    v.x += Math.sin(v.rotY) * v.speed;
+                    v.z += Math.cos(v.rotY) * v.speed;
+
+                    if (dist < 4.5 && !state.inVehicle) {
+                        state.health -= 0.35;
+                        refreshStatsHud();
+                        if (state.health <= 0) {
+                            document.getElementById('wastedOverlay').classList.remove('hidden');
+                            document.getElementById('wastedOverlay').classList.add('flex');
+                        }
+                    }
+                } else if (v.aiDriver) {
+                    v.speed = 0.42;
+                    const nx = v.x + Math.sin(v.rotY) * v.speed;
+                    const nz = v.z + Math.cos(v.rotY) * v.speed;
+                    if (nx < -175 || nx > 145 || nz < -175 || nz > 175 || collideWithBuildings(nx, nz, 2.5)) {
+                        v.rotY += Math.PI / 2;
+                    } else {
+                        v.x = nx;
+                        v.z = nz;
+                    }
+                }
+
+                v.mesh.position.set(v.x, 0, v.z);
+                v.mesh.rotation.y = v.rotY;
+            }
+
+            // 5. UPDATE PEDESTRIANS, BULLETS & CASH PICKUPS
+            for (let i = peds3D.length - 1; i >= 0; i--) {
+                const p = peds3D[i];
+                p.x += Math.sin(p.rotY) * 0.08;
+                p.z += Math.cos(p.rotY) * 0.08;
+                if (Math.random() < 0.02 || collideWithBuildings(p.x, p.z, 1.2)) {
+                    p.rotY += 1.2;
+                }
+                p.mesh.position.set(p.x, 0, p.z);
+                p.mesh.rotation.y = p.rotY;
+
+                // Vehicle Hit Check
+                if (state.inVehicle && Math.abs(state.inVehicle.speed) > 0.45 && Math.hypot(p.x - hero.x, p.z - hero.z) < 3.4) {
+                    p.hp = 0;
+                    addWantedLevel(1);
+                }
+
+                if (p.hp <= 0) {
+                    scene.remove(p.mesh);
+                    state.cash += 100;
+                    Audio3D.cash();
+                    refreshStatsHud();
+                    peds3D.splice(i, 1);
+                }
+            }
+
+            for (let i = bullets3D.length - 1; i >= 0; i--) {
+                const b = bullets3D[i];
+                b.mesh.position.x += b.vx;
+                b.mesh.position.z += b.vz;
+                b.life--;
+
+                for (const p of peds3D) {
+                    if (Math.hypot(p.x - b.mesh.position.x, p.z - b.mesh.position.z) < 1.8) {
+                        p.hp -= b.dmg;
+                        b.life = 0;
+                        if (Math.random() < 0.45) addWantedLevel(1);
+                        break;
+                    }
+                }
+
+                if (b.life <= 0) {
+                    scene.remove(b.mesh);
+                    bullets3D.splice(i, 1);
+                }
+            }
+
+            for (const pk of pickups3D) {
+                pk.rotation.y += 0.04;
+                if (Math.hypot(pk.position.x - hero.x, pk.position.z - hero.z) < 3.2) {
+                    state.cash += 250;
+                    Audio3D.cash();
+                    pk.position.set(-100 + Math.random() * 200, 1.2, -100 + Math.random() * 200);
+                    refreshStatsHud();
+                }
+            }
+
+            for (let i = particles3D.length - 1; i >= 0; i--) {
+                particles3D[i].life--;
+                particles3D[i].mesh.scale.multiplyScalar(1.05);
+                if (particles3D[i].life <= 0) {
+                    scene.remove(particles3D[i].mesh);
+                    particles3D.splice(i, 1);
+                }
+            }
+
+            // 6. CHECK MISSION BEACON WAYPOINT
+            const distMission = Math.hypot(state.missionTarget.x - hero.x, state.missionTarget.z - hero.z);
+            document.getElementById('missionDistBadge').textContent = `${Math.round(distMission)}m`;
+            if (distMission < 6.5) {
+                state.cash += state.missionTarget.reward;
+                Audio3D.cash();
+                refreshStatsHud();
+                showCenterToast('MISI 3D SELESAI! (MISSION PASSED)', `+ $${state.missionTarget.reward} • Target Baru Muncul!`);
+                const spots = [
+                    { x: -60, z: 60, title: 'Antar Paket ke Little Havana' },
+                    { x: 95, z: 80, title: 'Ambil Koper VIP di Ocean Drive' },
+                    { x: 0, z: -115, title: 'Kuasai Markas Vice Downtown' }
+                ];
+                const nextSpot = spots[Math.floor(Math.random() * spots.length)];
+                state.missionTarget.x = nextSpot.x;
+                state.missionTarget.z = nextSpot.z;
+                document.getElementById('missionHudText').textContent = nextSpot.title;
+                missionBeaconMesh.position.set(nextSpot.x, 14, nextSpot.z);
+            }
+
+            // Update Street Badge
+            const streetBadge = document.getElementById('streetNameBadge');
+            if (hero.x > 85) streetBadge.textContent = '📍 Ocean Beach 3D';
+            else if (hero.z < -60) streetBadge.textContent = '📍 Vice Downtown';
+            else streetBadge.textContent = '📍 Leonida Blvd';
+        }
+
+        function render2DRadar() {
+            const hero = getActiveProtagonist();
+            rCtx.fillStyle = '#090d16';
+            rCtx.fillRect(0, 0, 120, 120);
+
+            rCtx.save();
+            rCtx.translate(60, 60);
+            rCtx.rotate(state.camYaw);
+
+            const scale = 0.35;
+
+            // Draw Beach Water on Radar
+            rCtx.fillStyle = '#0284c7';
+            rCtx.fillRect((120 - hero.x) * scale, (-200 - hero.z) * scale, 120, 400);
+
+            // Pay 'n' Spray Dot (Green)
+            rCtx.fillStyle = '#10b981';
+            rCtx.beginPath();
+            rCtx.arc((payNSprayZone.x - hero.x) * scale, (payNSprayZone.z - hero.z) * scale, 4, 0, Math.PI * 2);
+            rCtx.fill();
+
+            // Other Protagonist Dot (Cyan/Orange)
+            const otherId = activeCharId === 'lucia' ? 'jason' : 'lucia';
+            const other = protagonists[otherId];
+            rCtx.fillStyle = '#38bdf8';
+            rCtx.beginPath();
+            rCtx.arc((other.x - hero.x) * scale, (other.z - hero.z) * scale, 3.5, 0, Math.PI * 2);
+            rCtx.fill();
+
+            // Vehicles & Police
+            for (const v of vehicles3D) {
+                if (v === state.inVehicle) continue;
+                rCtx.fillStyle = v.isPolice ? '#ef4444' : '#94a3b8';
+                rCtx.fillRect((v.x - hero.x) * scale - 2, (v.z - hero.z) * scale - 2, 4, 4);
+            }
+
+            // Mission Waypoint (Pink)
+            rCtx.fillStyle = '#ff2a85';
+            rCtx.beginPath();
+            rCtx.arc((state.missionTarget.x - hero.x) * scale, (state.missionTarget.z - hero.z) * scale, 4.5, 0, Math.PI * 2);
+            rCtx.fill();
+
+            rCtx.restore();
+        }
+
+        function animate3DLoop(now) {
+            requestAnimationFrame(animate3DLoop);
+
+            // Pause 3D updates if device is held in Portrait mode
+            if (isPortraitBlocked) return;
+
+            frameCount++;
+            if (now - lastFpsUpdate >= 500) {
+                currentFps = Math.min(60, Math.round((frameCount * 1000) / (now - lastFpsUpdate)));
+                frameCount = 0;
+                lastFpsUpdate = now;
+                const fpsEl = document.getElementById('fpsCounter');
+                if (fpsEl) {
+                    fpsEl.textContent = `${currentFps} FPS • ${currentQuality.toUpperCase()}`;
+                }
+            }
+
+            update3DPhysics(now);
+            renderer.render(scene, camera);
+            render2DRadar();
+        }
+
+        window.onload = function () {
+            checkDeviceOrientation();
+            initThreeJSWorld();
+            // Render preview backdrop behind Start Menu
+            renderer.render(scene, camera);
+        };
+    </script>
+</body>
+</html>
